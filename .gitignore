@@ -1,0 +1,24 @@
+﻿# Node / Angular Ignores
+/dist/
+/out-tsc/
+/bazel-out/
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# .NET Core / Visual Studio Ignores
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.sln.docstates
+*.bak
+*.tmp
+project.lock.json
+project.fragment.lock.json
