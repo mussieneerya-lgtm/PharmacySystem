@@ -1,0 +1,133 @@
+.page { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+
+.search-hero {
+  text-align: center; margin-bottom: 2rem;
+  h1 { font-size: 2rem; font-weight: 800; color: #1e3a5f; margin: 0 0 .4rem; }
+  p  { color: #64748b; font-size: 1rem; margin: 0; }
+}
+
+/* Filter */
+.filter-panel {
+  background: #fff; border-radius: 1rem; border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06); padding: 1.25rem; margin-bottom: 1.5rem;
+}
+
+.filter-main {
+  display: flex; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap;
+  @media (max-width: 600px) { flex-direction: column; }
+}
+
+.search-input-wrap {
+  flex: 1; position: relative; min-width: 200px;
+  .search-icon { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); font-size: 1rem; pointer-events: none; }
+  .search-input { width: 100%; padding: .65rem .875rem .65rem 2.5rem; border: 1.5px solid #d1d5db; border-radius: .5rem; font-size: 1rem; outline: none; box-sizing: border-box;
+    &:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+  }
+}
+
+.filter-row {
+  display: flex; gap: .75rem; align-items: flex-end; flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex; flex-direction: column; gap: .3rem; min-width: 130px;
+  label { font-size: .78rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+  input, select {
+    border: 1.5px solid #d1d5db; border-radius: .5rem; padding: .5rem .75rem; font-size: .9rem; outline: none; background: #fff; box-sizing: border-box;
+    &:focus { border-color: #3b82f6; }
+  }
+}
+
+/* Results */
+.results-header { font-size: .875rem; color: #64748b; margin-bottom: 1rem; }
+
+.results-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;
+}
+
+.medicine-card {
+  background: #fff; border-radius: .875rem; border: 1px solid #e2e8f0;
+  padding: 1.25rem; cursor: pointer; transition: box-shadow .2s, border-color .2s;
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,.10); border-color: #93c5fd; }
+  &:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+}
+
+.med-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .25rem; }
+.med-name   { font-size: 1.05rem; font-weight: 700; color: #1e293b; }
+.med-generic { font-size: .82rem; color: #94a3b8; display: block; margin-bottom: .6rem; }
+
+.med-meta { margin-bottom: .6rem; }
+.category-pill {
+  display: inline-block; background: #eff6ff; color: #1d4ed8;
+  border-radius: 999px; padding: .15rem .65rem; font-size: .75rem; font-weight: 600;
+}
+
+.med-footer { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
+.price { font-size: 1.05rem; font-weight: 700; color: #0f172a; }
+.stock { font-size: .8rem; color: #22c55e; &.low { color: #dc2626; } }
+.pharmacy-tag { font-size: .78rem; color: #64748b; }
+.expiry-warning { font-size: .75rem; color: #d97706; margin-top: .35rem; }
+
+.badge {
+  display: inline-block; padding: .15rem .55rem; border-radius: 999px; font-size: .7rem; font-weight: 700;
+  &.badge-rx  { background: #fdf4ff; color: #9333ea; }
+  &.badge-otc { background: #f0fdf4; color: #15803d; }
+}
+
+/* States */
+.loading-state, .hint-state, .empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 4rem 2rem; gap: .75rem;
+  color: #64748b; text-align: center;
+}
+.hint-icon, .empty-icon { font-size: 3rem; }
+
+/* Pagination */
+.pagination { display: flex; justify-content: center; gap: .35rem; margin-top: 2rem; flex-wrap: wrap; }
+.pg-btn {
+  min-width: 2.25rem; height: 2.25rem; border: 1px solid #e2e8f0; background: #fff;
+  border-radius: .5rem; font-size: .9rem; font-weight: 600; cursor: pointer; transition: all .15s;
+  &:hover:not(:disabled):not(.active) { background: #eff6ff; border-color: #93c5fd; }
+  &.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+  &:disabled { opacity: .4; cursor: not-allowed; }
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;
+}
+.modal {
+  background: #fff; border-radius: 1rem; box-shadow: 0 8px 48px rgba(0,0,0,.2);
+  width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto;
+}
+.modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between; padding: 1.5rem 1.5rem 0;
+  h2 { font-size: 1.25rem; font-weight: 700; color: #1e3a5f; margin: 0 0 .2rem; }
+  .sub { font-size: .85rem; color: #94a3b8; }
+}
+.close-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8; &:hover { color: #334155; } }
+.detail-body { padding: 1.25rem 1.5rem; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; @media (max-width: 480px) { grid-template-columns: 1fr; } }
+.detail-item { display: flex; flex-direction: column; gap: .2rem; &.full-width { grid-column: 1 / -1; } }
+.dl { font-size: .72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+.price-lg { font-size: 1.1rem; font-weight: 700; color: #0f172a; }
+.low { color: #dc2626; }
+.modal-footer { display: flex; gap: .75rem; justify-content: flex-end; padding: 1rem 1.5rem 1.5rem; border-top: 1px solid #f1f5f9; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: .5rem; border: none; border-radius: .5rem;
+  padding: .65rem 1.25rem; font-size: .95rem; font-weight: 600; cursor: pointer; transition: background .2s, opacity .2s;
+  &.btn-primary   { background: #2563eb; color: #fff; &:hover:not(:disabled) { background: #1d4ed8; } }
+  &.btn-secondary { background: #f1f5f9; color: #475569; &:hover { background: #e2e8f0; } }
+  &.btn-sm        { padding: .4rem .9rem; font-size: .85rem; }
+  &:disabled { opacity: .6; cursor: not-allowed; }
+}
+
+.spinner, .spinner-dark {
+  width: .9rem; height: .9rem; border-radius: 50%; animation: spin .7s linear infinite; display: inline-block;
+}
+.spinner      { border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; }
+.spinner-dark { border: 2px solid #d1d5db; border-top-color: #2563eb; }
+
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -1,0 +1,68 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo">💊</div>
+      <h1>PharmacySystem</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    @if (errorMsg()) {
+      <div class="alert alert-error" role="alert">
+        <span>⚠️ {{ errorMsg() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          [class.is-invalid]="email.invalid && email.touched"
+        />
+        @if (email.touched && email.hasError('required')) {
+          <span class="error-text">Email is required.</span>
+        } @else if (email.touched && email.hasError('email')) {
+          <span class="error-text">Enter a valid email address.</span>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-group">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            [class.is-invalid]="password.invalid && password.touched"
+          />
+          <button type="button" class="toggle-pw" (click)="showPassword.set(!showPassword())"
+                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+            {{ showPassword() ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        @if (password.touched && password.hasError('required')) {
+          <span class="error-text">Password is required.</span>
+        } @else if (password.touched && password.hasError('minlength')) {
+          <span class="error-text">Password must be at least 6 characters.</span>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+        @if (loading()) { <span class="spinner"></span> Signing in… }
+        @else { Sign in }
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Don't have an account? <a routerLink="/register">Create one</a>
+    </p>
+  </div>
+</div>

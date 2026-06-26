@@ -1,0 +1,168 @@
+<div class="profile-page">
+
+  <div class="page-header">
+    <div>
+      <h1>My Profile</h1>
+      <p>Update your personal details and pharmacy logo</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner-dark"></span> Loading profile…
+    </div>
+  } @else {
+
+    @if (successMsg()) {
+      <div class="alert alert-success" role="status">✅ {{ successMsg() }}</div>
+    }
+    @if (errorMsg()) {
+      <div class="alert alert-error" role="alert">⚠️ {{ errorMsg() }}</div>
+    }
+
+    <div class="profile-grid">
+
+      <!-- ── Left: Logo uploader ────────────────────────────────────── -->
+      <section class="card logo-card" aria-label="Pharmacy logo">
+        <h2 class="card-title">Pharmacy Logo</h2>
+
+        <!-- Current / preview logo -->
+        <div class="logo-preview-wrap">
+          @if (displayLogoUrl) {
+            <img [src]="displayLogoUrl" alt="Pharmacy logo preview" class="logo-preview" />
+          } @else {
+            <div class="logo-placeholder" aria-label="No logo uploaded">
+              <span class="placeholder-initials">{{ initials }}</span>
+              <span class="placeholder-hint">No logo yet</span>
+            </div>
+          }
+        </div>
+
+        <!-- Drag-and-drop zone -->
+        <div
+          class="drop-zone"
+          [class.drop-zone--over]="isDragOver()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event)"
+          (click)="fileInput.click()"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="fileInput.click()"
+          aria-label="Click or drag and drop to upload logo"
+        >
+          <span class="drop-icon" aria-hidden="true">🖼️</span>
+          <p class="drop-primary">Click or drag &amp; drop to upload</p>
+          <p class="drop-secondary">JPEG, PNG, WebP — max 2 MB</p>
+
+          <input
+            #fileInput
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            class="file-input-hidden"
+            (change)="onFileSelected($event)"
+            aria-hidden="true"
+          />
+        </div>
+
+        @if (selectedFile()) {
+          <div class="staged-file">
+            <span class="staged-name">📎 {{ selectedFile()!.name }}</span>
+            <button class="btn-clear" type="button" (click)="clearLogo()" aria-label="Remove selected file">✕</button>
+          </div>
+        }
+
+        <p class="logo-hint">
+          The logo appears in the sidebar header and on your public pharmacy listing.
+        </p>
+      </section>
+
+      <!-- ── Right: Details form ────────────────────────────────────── -->
+      <section class="card form-card" aria-label="Profile details">
+        <h2 class="card-title">Personal Details</h2>
+
+        <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+
+          <div class="form-group">
+            <label for="fullName">Full Name <span class="required">*</span></label>
+            <input
+              id="fullName"
+              type="text"
+              formControlName="fullName"
+              placeholder="Your full name"
+              autocomplete="name"
+              [class.is-invalid]="form.get('fullName')!.invalid && form.get('fullName')!.touched"
+            />
+            @if (form.get('fullName')!.touched && form.get('fullName')!.hasError('required')) {
+              <span class="error-text">Full name is required.</span>
+            } @else if (form.get('fullName')!.touched && form.get('fullName')!.hasError('minlength')) {
+              <span class="error-text">Name must be at least 2 characters.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address <span class="required">*</span></label>
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              [class.is-invalid]="form.get('email')!.invalid && form.get('email')!.touched"
+            />
+            @if (form.get('email')!.touched && form.get('email')!.hasError('required')) {
+              <span class="error-text">Email is required.</span>
+            } @else if (form.get('email')!.touched && form.get('email')!.hasError('email')) {
+              <span class="error-text">Enter a valid email address.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input
+              id="phone"
+              type="tel"
+              formControlName="phone"
+              placeholder="+251 91 000 0000"
+              autocomplete="tel"
+              [class.is-invalid]="form.get('phone')!.invalid && form.get('phone')!.touched"
+            />
+            @if (form.get('phone')!.touched && form.get('phone')!.hasError('maxlength')) {
+              <span class="error-text">Phone must be 30 characters or fewer.</span>
+            }
+          </div>
+
+          <!-- Read-only role badge -->
+          <div class="form-group">
+            <label>Account Role</label>
+            <div class="role-display">
+              <span class="role-pill role-{{ profile()?.role?.toLowerCase() }}">
+                {{ profile()?.role }}
+              </span>
+              <span class="role-note">Role can only be changed by an administrator.</span>
+            </div>
+          </div>
+
+          <!-- Member since -->
+          <div class="form-group">
+            <label>Member Since</label>
+            <p class="static-value">{{ profile()?.createdAt | date:'longDate' }}</p>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              @if (saving()) {
+                <span class="spinner"></span> Saving…
+              } @else {
+                Save Changes
+              }
+            </button>
+          </div>
+
+        </form>
+      </section>
+
+    </div>
+  }
+
+</div>

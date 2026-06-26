@@ -1,0 +1,148 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Admin Panel</h1>
+    <p>Manage pharmacies and user accounts</p>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-value">{{ pharmacies().length }}</span>
+      <span class="stat-label">Total Pharmacies</span>
+    </div>
+    <div class="stat-card stat-warn">
+      <span class="stat-value">{{ pendingCount }}</span>
+      <span class="stat-label">Pending Approval</span>
+    </div>
+    <div class="stat-card stat-success">
+      <span class="stat-value">{{ approvedCount }}</span>
+      <span class="stat-label">Approved</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ users().length }}</span>
+      <span class="stat-label">Total Users</span>
+    </div>
+    <div class="stat-card stat-success">
+      <span class="stat-value">{{ activeUserCount }}</span>
+      <span class="stat-label">Active Users</span>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  @if (successMsg()) {
+    <div class="alert alert-success">✅ {{ successMsg() }}</div>
+  }
+  @if (errorMsg()) {
+    <div class="alert alert-error">⚠️ {{ errorMsg() }}</div>
+  }
+
+  <!-- Tabs -->
+  <div class="tabs" role="tablist">
+    <button role="tab" class="tab" [class.active]="activeTab() === 'pharmacies'"
+            (click)="activeTab.set('pharmacies')" [attr.aria-selected]="activeTab() === 'pharmacies'">
+      🏥 Pharmacies
+      @if (pendingCount > 0) { <span class="tab-badge">{{ pendingCount }}</span> }
+    </button>
+    <button role="tab" class="tab" [class.active]="activeTab() === 'users'"
+            (click)="activeTab.set('users')" [attr.aria-selected]="activeTab() === 'users'">
+      👥 Users
+    </button>
+  </div>
+
+  <!-- Pharmacies Tab -->
+  @if (activeTab() === 'pharmacies') {
+    @if (loadingPharmacies()) {
+      <div class="loading-state"><span class="spinner-dark"></span> Loading pharmacies…</div>
+    } @else if (pharmacies().length === 0) {
+      <div class="empty-state"><div class="empty-icon">🏥</div><p>No pharmacies registered yet.</p></div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>License</th>
+              <th>City</th>
+              <th>Owner</th>
+              <th>Status</th>
+              <th>Registered</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ph of pharmacies(); track ph.id) {
+              <tr>
+                <td>
+                  <span class="ph-name">{{ ph.name }}</span>
+                  <span class="ph-email">{{ ph.email }}</span>
+                </td>
+                <td><code>{{ ph.licenseNumber }}</code></td>
+                <td>{{ ph.city }}</td>
+                <td>{{ ph.ownerName }}</td>
+                <td><span class="badge" [class]="statusClass(ph.status)">{{ ph.status }}</span></td>
+                <td>{{ ph.registeredAt | date:'mediumDate' }}</td>
+                <td class="actions">
+                  @if (ph.status === 'Pending') {
+                    <button class="btn btn-sm btn-success" (click)="approvePharmacy(ph.id)" aria-label="Approve pharmacy">Approve</button>
+                    <button class="btn btn-sm btn-danger"  (click)="rejectPharmacy(ph.id)"  aria-label="Reject pharmacy">Reject</button>
+                  } @else if (ph.status === 'Approved') {
+                    <button class="btn btn-sm btn-warn"    (click)="rejectPharmacy(ph.id)"  aria-label="Revoke approval">Revoke</button>
+                  } @else {
+                    <button class="btn btn-sm btn-success" (click)="approvePharmacy(ph.id)" aria-label="Re-approve pharmacy">Re-approve</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- Users Tab -->
+  @if (activeTab() === 'users') {
+    @if (loadingUsers()) {
+      <div class="loading-state"><span class="spinner-dark"></span> Loading users…</div>
+    } @else if (users().length === 0) {
+      <div class="empty-state"><div class="empty-icon">👥</div><p>No users found.</p></div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Joined</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of users(); track u.id) {
+              <tr [class.row-inactive]="!u.isActive">
+                <td class="user-name">{{ u.fullName }}</td>
+                <td>{{ u.email }}</td>
+                <td><span class="role-badge role-{{ u.role.toLowerCase() }}">{{ u.role }}</span></td>
+                <td>{{ u.createdAt | date:'mediumDate' }}</td>
+                <td>
+                  @if (u.isActive) {
+                    <span class="badge badge-approved">Active</span>
+                  } @else {
+                    <span class="badge badge-rejected">Inactive</span>
+                  }
+                </td>
+                <td>
+                  <button class="btn btn-sm" [class.btn-danger]="u.isActive" [class.btn-success]="!u.isActive"
+                          (click)="toggleUser(u.id)" [attr.aria-label]="u.isActive ? 'Deactivate user' : 'Activate user'">
+                    {{ u.isActive ? 'Deactivate' : 'Activate' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

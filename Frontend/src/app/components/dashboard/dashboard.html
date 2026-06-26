@@ -1,0 +1,91 @@
+<div class="shell" [class.sidebar-collapsed]="!sidebarOpen()">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <aside class="sidebar" [class.open]="sidebarOpen()" aria-label="Main navigation">
+
+    <div class="sidebar-header">
+      <!-- Show uploaded logo when available, otherwise fall back to emoji -->
+      @if (logoUrl()) {
+        <img [src]="logoUrl()!" class="sidebar-logo-img" alt="Pharmacy logo" />
+      } @else {
+        <span class="logo-icon" aria-hidden="true">💊</span>
+      }
+      @if (sidebarOpen()) {
+        <span class="logo-text">PharmacySys</span>
+      }
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of navItems(); track item.route) {
+        <a [routerLink]="item.route" routerLinkActive="active"
+           class="nav-item" [title]="item.label">
+          <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
+          @if (sidebarOpen()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      @if (sidebarOpen()) {
+        <a routerLink="/dashboard/profile" class="user-info user-info--link"
+           title="Edit profile" aria-label="Edit your profile">
+          <!-- Avatar: logo thumbnail or initials -->
+          @if (logoUrl()) {
+            <img [src]="logoUrl()!" class="avatar avatar--img" alt="Your logo" />
+          } @else {
+            <div class="avatar" aria-hidden="true">
+              {{ user()?.fullName?.charAt(0) ?? '?' }}
+            </div>
+          }
+          <div class="user-details">
+            <span class="user-name">{{ user()?.fullName }}</span>
+            <span class="user-role">{{ role() }}</span>
+          </div>
+        </a>
+      }
+      <button class="logout-btn" (click)="logout()" title="Sign out" aria-label="Sign out">
+        <span aria-hidden="true">🚪</span>
+        @if (sidebarOpen()) { <span>Sign out</span> }
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <header class="topbar">
+      <button class="toggle-btn" (click)="toggleSidebar()"
+              [attr.aria-label]="sidebarOpen() ? 'Collapse sidebar' : 'Expand sidebar'"
+              [attr.aria-expanded]="sidebarOpen()">
+        {{ sidebarOpen() ? '◀' : '▶' }}
+      </button>
+
+      <div class="topbar-title">
+        <h2>Pharmacy Management System</h2>
+      </div>
+
+      <div class="topbar-right">
+        <span class="role-badge">{{ role() }}</span>
+
+        <!-- Profile shortcut in topbar -->
+        <a routerLink="/dashboard/profile" class="topbar-profile-btn"
+           title="My Profile" aria-label="Go to profile">
+          @if (logoUrl()) {
+            <img [src]="logoUrl()!" class="topbar-avatar-img" alt="Your logo" />
+          } @else {
+            <span class="topbar-avatar-initials" aria-hidden="true">
+              {{ user()?.fullName?.charAt(0) ?? '?' }}
+            </span>
+          }
+        </a>
+      </div>
+    </header>
+
+    <main class="content" id="main-content" tabindex="-1">
+      <router-outlet />
+    </main>
+  </div>
+
+</div>

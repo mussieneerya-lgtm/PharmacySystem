@@ -1,0 +1,328 @@
+<div class="page">
+
+  <!-- ── Page header ──────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1>Medicine Management</h1>
+      <p>Manage your pharmacy's medicine inventory</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">
+      <span aria-hidden="true">＋</span> Add Medicine
+    </button>
+  </div>
+
+  <!-- ── KPI cards ────────────────────────────────────────────────────── -->
+  <div class="kpi-row" aria-label="Inventory summary">
+    <div class="kpi-card">
+      <span class="kpi-icon" aria-hidden="true">💊</span>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ totalMedicines() }}</span>
+        <span class="kpi-label">Total Medicines</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-icon" aria-hidden="true">📦</span>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ totalStock() | number }}</span>
+        <span class="kpi-label">Total Stock Units</span>
+      </div>
+    </div>
+
+    <div class="kpi-card" [class.kpi-card--warn]="lowStockCount() > 0">
+      <span class="kpi-icon" aria-hidden="true">⚠️</span>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ lowStockCount() }}</span>
+        <span class="kpi-label">Low Stock Alerts</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Alerts ───────────────────────────────────────────────────────── -->
+  @if (successMsg()) {
+    <div class="alert alert-success" role="status">✅ {{ successMsg() }}</div>
+  }
+  @if (errorMsg() && !modalMode()) {
+    <div class="alert alert-error" role="alert">⚠️ {{ errorMsg() }}</div>
+  }
+
+  <!-- ── Table section ────────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner-dark"></span> Loading medicines…
+    </div>
+
+  } @else if (medicines().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">💊</div>
+      <h3>No medicines yet</h3>
+      <p>Add your first medicine to get started.</p>
+      <button class="btn btn-primary" (click)="openCreate()">Add Medicine</button>
+    </div>
+
+  } @else {
+
+    <!-- Live search bar -->
+    <div class="search-bar-wrap">
+      <span class="search-icon" aria-hidden="true">🔍</span>
+      <input
+        type="search"
+        class="search-input"
+        placeholder="Search by name, generic, category, manufacturer…"
+        [(ngModel)]="filterQuery"
+        aria-label="Filter medicines"
+      />
+      @if (filterQuery) {
+        <button class="search-clear" (click)="filterQuery = ''" aria-label="Clear search">✕</button>
+      }
+    </div>
+
+    <!-- Result count when filtering -->
+    @if (filterQuery) {
+      <p class="result-count">
+        Showing <strong>{{ filteredMedicines().length }}</strong> of
+        <strong>{{ medicines().length }}</strong> medicines
+      </p>
+    }
+
+    @if (filteredMedicines().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <h3>No matches found</h3>
+        <p>Try a different search term.</p>
+      </div>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name / Generic</th>
+              <th>Category</th>
+              <th>Price (ETB)</th>
+              <th>Stock</th>
+              <th>Rx</th>
+              <th>Expiry</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of filteredMedicines(); track m.id; let odd = $odd) {
+              <tr [class.row-odd]="odd"
+                  [class.row-inactive]="!m.isActive"
+                  [class.row-low-stock]="m.isLowStock && m.isActive"
+                  [class.row-expiring]="m.isExpiringSoon && m.isActive && !m.isLowStock">
+                <td>
+                  <div class="med-name-wrap">
+                    <span class="med-name">{{ m.name }}</span>
+                    @if (m.isLowStock || m.isExpiringSoon) {
+                      <span class="alert-badges">
+                        @if (m.isLowStock) {
+                          <span class="alert-badge alert-badge--stock" title="Low stock">
+                            📉 Low Stock
+                          </span>
+                        }
+                        @if (m.isExpiringSoon) {
+                          <span class="alert-badge alert-badge--expiry" title="Expiring within 30 days">
+                            ⏳ Expiring Soon
+                          </span>
+                        }
+                      </span>
+                    }
+                    <span class="med-generic">{{ m.genericName }} · {{ m.strength }}</span>
+                  </div>
+                </td>
+                <td><span class="pill pill-category">{{ m.category }}</span></td>
+                <td class="price">{{ m.price | number:'1.2-2' }}</td>
+                <td>
+                  <span class="stock-badge" [class.stock-badge--low]="m.isLowStock">
+                    {{ m.stockQuantity }}
+                  </span>
+                </td>
+                <td>
+                  @if (m.requiresPrescription) {
+                    <span class="pill pill-rx">Rx</span>
+                  } @else {
+                    <span class="pill pill-otc">OTC</span>
+                  }
+                </td>
+                <td [class.td-expiring]="m.isExpiringSoon">
+                  {{ m.expiryDate | date:'mediumDate' }}
+                  @if (m.isExpiringSoon) {
+                    <span class="warn-icon" title="Expiring within 30 days" aria-label="Expiring soon">⚠️</span>
+                  }
+                </td>
+                <td>
+                  @if (m.isActive) {
+                    <span class="pill pill-active">Active</span>
+                  } @else {
+                    <span class="pill pill-inactive">Inactive</span>
+                  }
+                </td>
+                <td class="actions">
+                  <button class="btn-icon" title="Edit" (click)="openEdit(m)" aria-label="Edit {{ m.name }}">✏️</button>
+                  <button class="btn-icon btn-icon-danger" title="Remove" (click)="confirmDelete(m)" aria-label="Remove {{ m.name }}">🗑️</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- ── Create / Edit Modal ───────────────────────────────────────────── -->
+  @if (modalMode()) {
+    <div class="modal-backdrop" (click)="closeModal()" role="dialog" aria-modal="true"
+         [attr.aria-label]="modalMode() === 'create' ? 'Add medicine' : 'Edit medicine'">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ modalMode() === 'create' ? 'Add Medicine' : 'Edit Medicine' }}</h2>
+          <button class="close-btn" (click)="closeModal()" aria-label="Close">✕</button>
+        </div>
+
+        @if (errorMsg()) {
+          <div class="alert alert-error" style="margin: .75rem 1.5rem 0">⚠️ {{ errorMsg() }}</div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label>Brand Name *</label>
+              <input type="text" formControlName="name" placeholder="e.g. Panadol"
+                     [class.is-invalid]="form.get('name')!.invalid && form.get('name')!.touched" />
+              @if (form.get('name')!.touched && form.get('name')!.hasError('required')) {
+                <span class="error-text">Required.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Generic Name *</label>
+              <input type="text" formControlName="genericName" placeholder="e.g. Paracetamol"
+                     [class.is-invalid]="form.get('genericName')!.invalid && form.get('genericName')!.touched" />
+              @if (form.get('genericName')!.touched && form.get('genericName')!.hasError('required')) {
+                <span class="error-text">Required.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Manufacturer *</label>
+              <input type="text" formControlName="manufacturer" placeholder="e.g. GSK"
+                     [class.is-invalid]="form.get('manufacturer')!.invalid && form.get('manufacturer')!.touched" />
+              @if (form.get('manufacturer')!.touched && form.get('manufacturer')!.hasError('required')) {
+                <span class="error-text">Required.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Category *</label>
+              <select formControlName="category"
+                      [class.is-invalid]="form.get('category')!.invalid && form.get('category')!.touched">
+                <option value="">Select category</option>
+                @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+              @if (form.get('category')!.touched && form.get('category')!.hasError('required')) {
+                <span class="error-text">Required.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Dosage Form *</label>
+              <select formControlName="dosageForm"
+                      [class.is-invalid]="form.get('dosageForm')!.invalid && form.get('dosageForm')!.touched">
+                <option value="">Select form</option>
+                @for (df of dosageForms; track df) {
+                  <option [value]="df">{{ df }}</option>
+                }
+              </select>
+              @if (form.get('dosageForm')!.touched && form.get('dosageForm')!.hasError('required')) {
+                <span class="error-text">Required.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Strength *</label>
+              <input type="text" formControlName="strength" placeholder="e.g. 500mg"
+                     [class.is-invalid]="form.get('strength')!.invalid && form.get('strength')!.touched" />
+              @if (form.get('strength')!.touched && form.get('strength')!.hasError('required')) {
+                <span class="error-text">Required.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Price (ETB) *</label>
+              <input type="number" formControlName="price" min="0" step="0.01" placeholder="0.00"
+                     [class.is-invalid]="form.get('price')!.invalid && form.get('price')!.touched" />
+              @if (form.get('price')!.touched && form.get('price')!.hasError('min')) {
+                <span class="error-text">Price cannot be negative.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Stock Quantity *</label>
+              <input type="number" formControlName="stockQuantity" min="0" placeholder="0"
+                     [class.is-invalid]="form.get('stockQuantity')!.invalid && form.get('stockQuantity')!.touched" />
+              @if (form.get('stockQuantity')!.touched && form.get('stockQuantity')!.hasError('min')) {
+                <span class="error-text">Cannot be negative.</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Expiry Date *</label>
+              <input type="date" formControlName="expiryDate"
+                     [class.is-invalid]="form.get('expiryDate')!.invalid && form.get('expiryDate')!.touched" />
+              @if (form.get('expiryDate')!.touched && form.get('expiryDate')!.hasError('required')) {
+                <span class="error-text">Required.</span>
+              }
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="requiresPrescription" />
+                <span>Requires Prescription (Rx)</span>
+              </label>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Description</label>
+              <textarea formControlName="description" rows="3"
+                        placeholder="Optional description or usage notes"></textarea>
+            </div>
+
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              @if (saving()) { <span class="spinner"></span> Saving… }
+              @else { {{ modalMode() === 'create' ? 'Add Medicine' : 'Save Changes' }} }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ── Delete Confirm Modal ──────────────────────────────────────────── -->
+  @if (deleteTarget()) {
+    <div class="modal-backdrop" role="alertdialog" aria-modal="true" aria-label="Confirm delete">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h2>Remove Medicine</h2>
+        </div>
+        <p class="confirm-text">
+          Are you sure you want to remove <strong>{{ deleteTarget()!.name }}</strong>?
+          It will be marked inactive and hidden from search.
+        </p>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="cancelDelete()">Cancel</button>
+          <button class="btn btn-danger" (click)="doDelete()">Yes, Remove</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

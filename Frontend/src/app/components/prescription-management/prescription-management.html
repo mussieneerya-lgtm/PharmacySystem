@@ -1,0 +1,239 @@
+<div class="page">
+
+  <div class="page-header">
+    <div>
+      <h1>Prescriptions</h1>
+      <p>Manage and track patient prescriptions</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">+ New Prescription</button>
+  </div>
+
+  @if (successMsg()) {
+    <div class="alert alert-success">✅ {{ successMsg() }}</div>
+  }
+  @if (errorMsg() && !showCreateModal()) {
+    <div class="alert alert-error">⚠️ {{ errorMsg() }}</div>
+  }
+
+  <!-- List -->
+  @if (loading()) {
+    <div class="loading-state"><span class="spinner-dark"></span> Loading…</div>
+  } @else if (prescriptions().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>No prescriptions yet</h3>
+      <p>Create the first prescription to get started.</p>
+    </div>
+  } @else {
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Pharmacy</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of prescriptions(); track p.id) {
+            <tr>
+              <td class="id-col">{{ p.id }}</td>
+              <td>
+                <span class="patient-name">{{ p.patientName }}</span>
+                <span class="patient-phone">{{ p.patientPhone }}</span>
+              </td>
+              <td>{{ p.doctorName }}</td>
+              <td>{{ p.pharmacyName }}</td>
+              <td><span class="badge" [class]="statusClass(p.status)">{{ p.status }}</span></td>
+              <td>{{ p.issuedDate | date:'mediumDate' }}</td>
+              <td class="actions">
+                <button class="btn-icon" title="View" (click)="viewDetail(p)" aria-label="View prescription">👁️</button>
+
+                @if ((isAdmin() || isPharmacist()) && p.status === 'Pending') {
+                  <button class="btn-icon btn-icon-success" title="Mark Filled"
+                          (click)="updateStatus(p.id, 1)" aria-label="Mark filled">✅</button>
+                }
+
+                @if (p.status === 'Pending') {
+                  <button class="btn-icon btn-icon-danger" title="Cancel"
+                          (click)="cancel(p.id)" aria-label="Cancel prescription">✕</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Create Modal -->
+  @if (showCreateModal()) {
+    <div class="modal-backdrop" (click)="closeModal()" role="dialog" aria-modal="true" aria-label="New prescription">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>New Prescription</h2>
+          <button class="close-btn" (click)="closeModal()" aria-label="Close">✕</button>
+        </div>
+
+        @if (errorMsg()) {
+          <div class="alert alert-error" style="margin: 0 1.5rem .5rem;">⚠️ {{ errorMsg() }}</div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="form-body">
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Patient Name *</label>
+                <input type="text" formControlName="patientName" placeholder="John Doe"
+                       [class.is-invalid]="form.get('patientName')!.invalid && form.get('patientName')!.touched" />
+                @if (form.get('patientName')!.touched && form.get('patientName')!.hasError('required')) {
+                  <span class="error-text">Required.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label>Patient Phone *</label>
+                <input type="tel" formControlName="patientPhone" placeholder="+254 700 000 000"
+                       [class.is-invalid]="form.get('patientPhone')!.invalid && form.get('patientPhone')!.touched" />
+                @if (form.get('patientPhone')!.touched && form.get('patientPhone')!.hasError('required')) {
+                  <span class="error-text">Required.</span>
+                } @else if (form.get('patientPhone')!.touched && form.get('patientPhone')!.hasError('pattern')) {
+                  <span class="error-text">Invalid phone number.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label>Doctor Name *</label>
+                <input type="text" formControlName="doctorName" placeholder="Dr. Jane Smith"
+                       [class.is-invalid]="form.get('doctorName')!.invalid && form.get('doctorName')!.touched" />
+                @if (form.get('doctorName')!.touched && form.get('doctorName')!.hasError('required')) {
+                  <span class="error-text">Required.</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label>Pharmacy *</label>
+                <select formControlName="pharmacyId"
+                        (change)="onPharmacyChange(+$any($event.target).value)"
+                        [class.is-invalid]="form.get('pharmacyId')!.invalid && form.get('pharmacyId')!.touched">
+                  <option [ngValue]="null">Select pharmacy</option>
+                  @for (ph of pharmacies(); track ph.id) {
+                    <option [value]="ph.id">{{ ph.name }} – {{ ph.city }}</option>
+                  }
+                </select>
+                @if (form.get('pharmacyId')!.touched && form.get('pharmacyId')!.hasError('required')) {
+                  <span class="error-text">Required.</span>
+                }
+              </div>
+
+              <div class="form-group full-width">
+                <label>Notes</label>
+                <textarea formControlName="notes" rows="2" placeholder="Optional clinical notes"></textarea>
+              </div>
+            </div>
+
+            <!-- Items -->
+            <div class="items-section">
+              <div class="items-header">
+                <h3>Prescribed Medicines</h3>
+                <button type="button" class="btn btn-sm btn-secondary" (click)="addItem()">+ Add Item</button>
+              </div>
+
+              @for (item of items.controls; track $index) {
+                <div class="item-row" [formGroup]="$any(item)">
+                  <div class="form-group item-medicine">
+                    <label>Medicine *</label>
+                    <select formControlName="medicineId"
+                            [class.is-invalid]="item.get('medicineId')!.invalid && item.get('medicineId')!.touched">
+                      <option [ngValue]="null">Select medicine</option>
+                      @for (m of medicines(); track m.id) {
+                        <option [value]="m.id">{{ m.name }} ({{ m.strength }})</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="form-group item-qty">
+                    <label>Qty *</label>
+                    <input type="number" formControlName="quantity" min="1"
+                           [class.is-invalid]="item.get('quantity')!.invalid && item.get('quantity')!.touched" />
+                  </div>
+
+                  <div class="form-group item-instructions">
+                    <label>Instructions</label>
+                    <input type="text" formControlName="instructions" placeholder="e.g. Take twice daily" />
+                  </div>
+
+                  <button type="button" class="btn-icon btn-icon-danger remove-item"
+                          (click)="removeItem($index)" [disabled]="items.length === 1"
+                          aria-label="Remove item">✕</button>
+                </div>
+              }
+            </div>
+
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              @if (saving()) { <span class="spinner"></span> Saving… }
+              @else { Create Prescription }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Detail View Modal -->
+  @if (selectedPrescription()) {
+    <div class="modal-backdrop" (click)="closeDetail()" role="dialog" aria-modal="true" aria-label="Prescription detail">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Prescription #{{ selectedPrescription()!.id }}</h2>
+          <button class="close-btn" (click)="closeDetail()" aria-label="Close">✕</button>
+        </div>
+        <div class="detail-body">
+          <div class="detail-grid">
+            <div class="detail-item"><span class="detail-label">Patient</span><span>{{ selectedPrescription()!.patientName }}</span></div>
+            <div class="detail-item"><span class="detail-label">Phone</span><span>{{ selectedPrescription()!.patientPhone }}</span></div>
+            <div class="detail-item"><span class="detail-label">Doctor</span><span>{{ selectedPrescription()!.doctorName }}</span></div>
+            <div class="detail-item"><span class="detail-label">Pharmacy</span><span>{{ selectedPrescription()!.pharmacyName }}</span></div>
+            <div class="detail-item"><span class="detail-label">Status</span>
+              <span class="badge" [class]="statusClass(selectedPrescription()!.status)">{{ selectedPrescription()!.status }}</span>
+            </div>
+            <div class="detail-item"><span class="detail-label">Issued</span><span>{{ selectedPrescription()!.issuedDate | date:'medium' }}</span></div>
+            @if (selectedPrescription()!.filledDate) {
+              <div class="detail-item"><span class="detail-label">Filled</span><span>{{ selectedPrescription()!.filledDate | date:'medium' }}</span></div>
+            }
+            @if (selectedPrescription()!.notes) {
+              <div class="detail-item full-width"><span class="detail-label">Notes</span><span>{{ selectedPrescription()!.notes }}</span></div>
+            }
+          </div>
+
+          <h3 class="items-title">Prescribed Items</h3>
+          <table class="items-table">
+            <thead><tr><th>Medicine</th><th>Qty</th><th>Instructions</th></tr></thead>
+            <tbody>
+              @for (item of selectedPrescription()!.items; track item.id) {
+                <tr>
+                  <td>{{ item.medicineName }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ item.instructions || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeDetail()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

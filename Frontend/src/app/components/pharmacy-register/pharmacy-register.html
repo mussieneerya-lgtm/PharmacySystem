@@ -1,0 +1,115 @@
+<div class="page-wrapper">
+  <div class="card">
+    <div class="card-header">
+      <div class="icon">🏥</div>
+      <h1>Register Your Pharmacy</h1>
+      <p>Submit your pharmacy details for admin approval</p>
+    </div>
+
+    @if (successMsg()) {
+      <div class="alert alert-success" role="status">
+        ✅ {{ successMsg() }} Redirecting…
+      </div>
+    }
+
+    @if (errorMsg()) {
+      <div class="alert alert-error" role="alert">⚠️ {{ errorMsg() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-grid">
+
+        <!-- Pharmacy Name -->
+        <div class="form-group full-width">
+          <label for="name">Pharmacy Name <span class="required">*</span></label>
+          <input id="name" type="text" formControlName="name"
+                 placeholder="e.g. City Health Pharmacy"
+                 [class.is-invalid]="name.invalid && name.touched" />
+          @if (name.touched && name.hasError('required')) {
+            <span class="error-text">Pharmacy name is required.</span>
+          } @else if (name.touched && name.hasError('minlength')) {
+            <span class="error-text">Name must be at least 2 characters.</span>
+          }
+        </div>
+
+        <!-- License Number -->
+        <div class="form-group">
+          <label for="licenseNumber">License Number <span class="required">*</span></label>
+          <input id="licenseNumber" type="text" formControlName="licenseNumber"
+                 placeholder="e.g. PH-2024-001"
+                 [class.is-invalid]="licenseNumber.invalid && licenseNumber.touched" />
+          @if (licenseNumber.touched && licenseNumber.hasError('required')) {
+            <span class="error-text">License number is required.</span>
+          } @else if (licenseNumber.touched && licenseNumber.hasError('minlength')) {
+            <span class="error-text">Minimum 4 characters.</span>
+          }
+        </div>
+
+        <!-- City -->
+        <div class="form-group">
+          <label for="city">City <span class="required">*</span></label>
+          <input id="city" type="text" formControlName="city"
+                 placeholder="e.g. Nairobi"
+                 [class.is-invalid]="city.invalid && city.touched" />
+          @if (city.touched && city.hasError('required')) {
+            <span class="error-text">City is required.</span>
+          }
+        </div>
+
+        <!-- Address -->
+        <div class="form-group full-width">
+          <label for="address">Full Address <span class="required">*</span></label>
+          <input id="address" type="text" formControlName="address"
+                 placeholder="Street, Building, Area"
+                 [class.is-invalid]="address.invalid && address.touched" />
+          @if (address.touched && address.hasError('required')) {
+            <span class="error-text">Address is required.</span>
+          } @else if (address.touched && address.hasError('minlength')) {
+            <span class="error-text">Address must be at least 5 characters.</span>
+          }
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <label for="phone">Phone Number <span class="required">*</span></label>
+          <input id="phone" type="tel" formControlName="phone"
+                 placeholder="+254 700 000 000"
+                 [class.is-invalid]="phone.invalid && phone.touched" />
+          @if (phone.touched && phone.hasError('required')) {
+            <span class="error-text">Phone is required.</span>
+          } @else if (phone.touched && phone.hasError('pattern')) {
+            <span class="error-text">Enter a valid phone number.</span>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email">Pharmacy Email <span class="required">*</span></label>
+          <input id="email" type="email" formControlName="email"
+                 placeholder="pharmacy@example.com"
+                 [class.is-invalid]="email.invalid && email.touched" />
+          @if (email.touched && email.hasError('required')) {
+            <span class="error-text">Email is required.</span>
+          } @else if (email.touched && email.hasError('email')) {
+            <span class="error-text">Enter a valid email.</span>
+          }
+        </div>
+
+      </div>
+
+      <div class="info-box">
+        <p>📋 Your application will be reviewed by an admin. You'll be able to add medicines once approved.</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="goToDashboard()">
+          Skip for now
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading()">
+          @if (loading()) { <span class="spinner"></span> Submitting… }
+          @else { Submit Application }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

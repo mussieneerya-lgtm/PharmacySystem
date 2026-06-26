@@ -1,0 +1,160 @@
+<div class="page">
+
+  <div class="search-hero">
+    <h1>Find Medicines</h1>
+    <p>Search across all approved pharmacies in the network</p>
+  </div>
+
+  <!-- Filter Panel -->
+  <form [formGroup]="filterForm" (ngSubmit)="search(1)" novalidate>
+    <div class="filter-panel">
+      <div class="filter-main">
+        <div class="search-input-wrap">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input type="text" formControlName="name" placeholder="Search by medicine name or generic name…"
+                 class="search-input" aria-label="Search medicines" />
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="loading()">
+          @if (loading()) { <span class="spinner"></span> }
+          @else { Search }
+        </button>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <label for="category">Category</label>
+          <select id="category" formControlName="category">
+            <option value="">All categories</option>
+            @for (cat of categories; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="city">City</label>
+          <input id="city" type="text" formControlName="city" placeholder="e.g. Nairobi" />
+        </div>
+
+        <div class="filter-group">
+          <label for="rx">Prescription</label>
+          <select id="rx" formControlName="requiresPrescription">
+            <option [ngValue]="null">Any</option>
+            <option value="false">OTC only</option>
+            <option value="true">Rx required</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="maxPrice">Max Price (ETB)</label>
+          <input id="maxPrice" type="number" formControlName="maxPrice" min="0" placeholder="e.g. 500" />
+        </div>
+
+        <button type="button" class="btn btn-secondary btn-sm" (click)="clearFilters()"
+                [disabled]="!searched()">Clear</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Results -->
+  @if (loading()) {
+    <div class="loading-state"><span class="spinner-dark"></span> Searching…</div>
+  } @else if (!searched()) {
+    <div class="hint-state">
+      <div class="hint-icon">💊</div>
+      <p>Enter a medicine name or apply filters to start searching.</p>
+    </div>
+  } @else if (result().totalCount === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h3>No medicines found</h3>
+      <p>Try adjusting your search terms or filters.</p>
+    </div>
+  } @else {
+    <div class="results-header">
+      <span>{{ result().totalCount }} medicine{{ result().totalCount !== 1 ? 's' : '' }} found</span>
+    </div>
+
+    <div class="results-grid">
+      @for (m of result().items; track m.id) {
+        <div class="medicine-card" (click)="viewMedicine(m)" role="button" tabindex="0"
+             (keydown.enter)="viewMedicine(m)" [attr.aria-label]="'View details for ' + m.name">
+          <div class="med-card-header">
+            <span class="med-name">{{ m.name }}</span>
+            @if (m.requiresPrescription) {
+              <span class="badge badge-rx">Rx</span>
+            } @else {
+              <span class="badge badge-otc">OTC</span>
+            }
+          </div>
+          <span class="med-generic">{{ m.genericName }} · {{ m.strength }} · {{ m.dosageForm }}</span>
+          <div class="med-meta">
+            <span class="category-pill">{{ m.category }}</span>
+          </div>
+          <div class="med-footer">
+            <span class="price">ETB {{ m.price | number:'1.2-2' }}</span>
+            <span class="stock" [class.low]="m.stockQuantity < 10">
+              {{ m.stockQuantity > 0 ? 'In stock (' + m.stockQuantity + ')' : 'Out of stock' }}
+            </span>
+          </div>
+          <div class="pharmacy-tag">🏥 {{ m.pharmacyName }}</div>
+          @if (isExpiringSoon(m.expiryDate)) {
+            <div class="expiry-warning">⚠️ Expiring soon</div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (result().totalPages > 1) {
+      <div class="pagination" role="navigation" aria-label="Pagination">
+        <button class="pg-btn" [disabled]="result().page === 1" (click)="search(result().page - 1)"
+                aria-label="Previous page">‹</button>
+        @for (pg of pages; track pg) {
+          <button class="pg-btn" [class.active]="pg === result().page"
+                  (click)="search(pg)" [attr.aria-label]="'Page ' + pg" [attr.aria-current]="pg === result().page ? 'page' : null">
+            {{ pg }}
+          </button>
+        }
+        <button class="pg-btn" [disabled]="result().page === result().totalPages"
+                (click)="search(result().page + 1)" aria-label="Next page">›</button>
+      </div>
+    }
+  }
+
+  <!-- Detail Modal -->
+  @if (selectedMedicine()) {
+    <div class="modal-backdrop" (click)="closeDetail()" role="dialog" aria-modal="true"
+         [attr.aria-label]="selectedMedicine()!.name + ' details'">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div>
+            <h2>{{ selectedMedicine()!.name }}</h2>
+            <span class="sub">{{ selectedMedicine()!.genericName }}</span>
+          </div>
+          <button class="close-btn" (click)="closeDetail()" aria-label="Close">✕</button>
+        </div>
+        <div class="detail-body">
+          <div class="detail-grid">
+            <div class="detail-item"><span class="dl">Manufacturer</span><span>{{ selectedMedicine()!.manufacturer }}</span></div>
+            <div class="detail-item"><span class="dl">Category</span><span>{{ selectedMedicine()!.category }}</span></div>
+            <div class="detail-item"><span class="dl">Dosage Form</span><span>{{ selectedMedicine()!.dosageForm }}</span></div>
+            <div class="detail-item"><span class="dl">Strength</span><span>{{ selectedMedicine()!.strength }}</span></div>
+            <div class="detail-item"><span class="dl">Price</span><span class="price-lg">ETB {{ selectedMedicine()!.price | number:'1.2-2' }}</span></div>
+            <div class="detail-item"><span class="dl">Stock</span><span [class.low]="selectedMedicine()!.stockQuantity < 10">{{ selectedMedicine()!.stockQuantity }} units</span></div>
+            <div class="detail-item"><span class="dl">Prescription</span><span>{{ selectedMedicine()!.requiresPrescription ? 'Required (Rx)' : 'Not required (OTC)' }}</span></div>
+            <div class="detail-item"><span class="dl">Expiry</span><span>{{ selectedMedicine()!.expiryDate | date:'mediumDate' }}</span></div>
+            <div class="detail-item full-width"><span class="dl">Pharmacy</span><span>{{ selectedMedicine()!.pharmacyName }}</span></div>
+            @if (selectedMedicine()!.description) {
+              <div class="detail-item full-width"><span class="dl">Description</span><span>{{ selectedMedicine()!.description }}</span></div>
+            }
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeDetail()">Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

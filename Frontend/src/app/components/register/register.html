@@ -1,0 +1,96 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo">💊</div>
+      <h1>Create Account</h1>
+      <p>Join PharmacySystem today</p>
+    </div>
+
+    @if (errorMsg()) {
+      <div class="alert alert-error" role="alert">⚠️ {{ errorMsg() }}</div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      <!-- Full Name -->
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input id="fullName" type="text" formControlName="fullName"
+               placeholder="John Smith"
+               [class.is-invalid]="fullName.invalid && fullName.touched" />
+        @if (fullName.touched && fullName.hasError('required')) {
+          <span class="error-text">Full name is required.</span>
+        } @else if (fullName.touched && fullName.hasError('minlength')) {
+          <span class="error-text">Name must be at least 2 characters.</span>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input id="email" type="email" formControlName="email"
+               placeholder="you@example.com" autocomplete="email"
+               [class.is-invalid]="email.invalid && email.touched" />
+        @if (email.touched && email.hasError('required')) {
+          <span class="error-text">Email is required.</span>
+        } @else if (email.touched && email.hasError('email')) {
+          <span class="error-text">Enter a valid email address.</span>
+        }
+      </div>
+
+      <!-- Role -->
+      <div class="form-group">
+        <label for="role">Account Type</label>
+        <select id="role" formControlName="role">
+          <option value="Customer">Customer</option>
+          <option value="Pharmacist">Pharmacist</option>
+        </select>
+        @if (role.value === 'Pharmacist') {
+          <span class="hint">You'll be prompted to register your pharmacy after sign-up.</span>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-group">
+          <input id="password" [type]="showPassword() ? 'text' : 'password'"
+                 formControlName="password" placeholder="Min. 6 characters"
+                 autocomplete="new-password"
+                 [class.is-invalid]="password.invalid && password.touched" />
+          <button type="button" class="toggle-pw"
+                  (click)="showPassword.set(!showPassword())"
+                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+            {{ showPassword() ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        @if (password.touched && password.hasError('required')) {
+          <span class="error-text">Password is required.</span>
+        } @else if (password.touched && password.hasError('minlength')) {
+          <span class="error-text">Password must be at least 6 characters.</span>
+        }
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input id="confirmPassword" [type]="showPassword() ? 'text' : 'password'"
+               formControlName="confirmPassword" placeholder="Repeat your password"
+               autocomplete="new-password"
+               [class.is-invalid]="confirmPassword.touched && form.hasError('passwordMismatch')" />
+        @if (confirmPassword.touched && form.hasError('passwordMismatch')) {
+          <span class="error-text">Passwords do not match.</span>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+        @if (loading()) { <span class="spinner"></span> Creating account… }
+        @else { Create Account }
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+  </div>
+</div>

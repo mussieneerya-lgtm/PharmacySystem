@@ -1,0 +1,40 @@
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-icon" aria-hidden="true">💊</div>
+    <h1>PharmacySystem</h1>
+    <p class="tagline">Find medicines, manage prescriptions, and connect with pharmacies near you.</p>
+
+    <div class="cta-group">
+      @if (isLoggedIn()) {
+        <a [routerLink]="dashboardRoute" class="btn btn-primary btn-lg">Go to Dashboard</a>
+      } @else {
+        <a routerLink="/login" class="btn btn-primary btn-lg">Sign In</a>
+        <a routerLink="/register" class="btn btn-outline btn-lg">Create Account</a>
+      }
+      <a routerLink="/search" class="btn btn-ghost btn-lg">Browse Medicines</a>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">🔍</span>
+      <h3>Search Medicines</h3>
+      <p>Find medications across all approved pharmacies by name, category, city, or price.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">🏥</span>
+      <h3>Pharmacy Network</h3>
+      <p>Join our network as a licensed pharmacist and reach more customers in your area.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">📋</span>
+      <h3>Digital Prescriptions</h3>
+      <p>Issue and track prescriptions digitally, reducing paperwork and errors.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon" aria-hidden="true">🔐</span>
+      <h3>Secure &amp; Compliant</h3>
+      <p>Role-based access control ensures the right people see the right information.</p>
+    </div>
+  </div>
+</div>
