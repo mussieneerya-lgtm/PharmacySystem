@@ -8,6 +8,12 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── CUSTOM NETWORK PORT BINDING ──────────────────────────────────────────────
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5211); // Forces the backend onto port 5211 for your whole network
+});
+
 // ── Database ────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -45,11 +51,11 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddControllers();
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
-var corsOrigins = builder.Configuration["CorsOrigins"] ?? "http://localhost:4200";
+// Allow both your local computer and your other device's IP network address
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
-        policy.WithOrigins(corsOrigins.Split(','))
+        policy.WithOrigins("http://localhost:4200", "http://192.168.1.3:4200")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
@@ -137,10 +143,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// NOTE: UseHttpsRedirection is intentionally omitted for the local HTTP dev
-// profile (http://localhost:5211). Enabling it while running on plain HTTP
-// causes the server to issue a 307 redirect that browsers refuse to follow
-// across origins, producing a "failed to fetch" error in Angular.
 app.UseStaticFiles();          // serves wwwroot/uploads/logos/* — must be before UseCors
 app.UseCors("AllowAngular");
 app.UseAuthentication();
