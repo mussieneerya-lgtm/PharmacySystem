@@ -1,21 +1,24 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
 export class LoginComponent {
   form: FormGroup;
-  loading = signal(false);
-  errorMsg = signal('');
+  loading      = signal(false);
+  errorMsg     = signal('');
   showPassword = signal(false);
+  rememberMe   = false;   // UI-only, no backend change
+  readonly currentYear = new Date().getFullYear();
 
   constructor(
     private fb: FormBuilder,
@@ -23,12 +26,12 @@ export class LoginComponent {
     private router: Router
   ) {
     this.form = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      email:    ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
-  get email() { return this.form.get('email')!; }
+  get email()    { return this.form.get('email')!; }
   get password() { return this.form.get('password')!; }
 
   onSubmit(): void {
@@ -40,9 +43,9 @@ export class LoginComponent {
       next: (res) => {
         this.loading.set(false);
         const roleRoutes: Record<string, string> = {
-          Admin: '/dashboard/admin',
+          Admin:      '/dashboard/admin',
           Pharmacist: '/dashboard/pharmacy',
-          Customer: '/dashboard'
+          Customer:   '/dashboard'
         };
         this.router.navigate([roleRoutes[res.role] ?? '/dashboard']);
       },

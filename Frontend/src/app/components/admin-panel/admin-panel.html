@@ -30,26 +30,28 @@
 
   <!-- Alerts -->
   @if (successMsg()) {
-    <div class="alert alert-success">✅ {{ successMsg() }}</div>
+    <div class="alert alert-success" role="status">✅ {{ successMsg() }}</div>
   }
   @if (errorMsg()) {
-    <div class="alert alert-error">⚠️ {{ errorMsg() }}</div>
+    <div class="alert alert-error" role="alert">⚠️ {{ errorMsg() }}</div>
   }
 
   <!-- Tabs -->
   <div class="tabs" role="tablist">
     <button role="tab" class="tab" [class.active]="activeTab() === 'pharmacies'"
-            (click)="activeTab.set('pharmacies')" [attr.aria-selected]="activeTab() === 'pharmacies'">
+            (click)="activeTab.set('pharmacies')"
+            [attr.aria-selected]="activeTab() === 'pharmacies'">
       🏥 Pharmacies
       @if (pendingCount > 0) { <span class="tab-badge">{{ pendingCount }}</span> }
     </button>
     <button role="tab" class="tab" [class.active]="activeTab() === 'users'"
-            (click)="activeTab.set('users')" [attr.aria-selected]="activeTab() === 'users'">
+            (click)="activeTab.set('users')"
+            [attr.aria-selected]="activeTab() === 'users'">
       👥 Users
     </button>
   </div>
 
-  <!-- Pharmacies Tab -->
+  <!-- ── Pharmacies Tab ──────────────────────────────────────────────── -->
   @if (activeTab() === 'pharmacies') {
     @if (loadingPharmacies()) {
       <div class="loading-state"><span class="spinner-dark"></span> Loading pharmacies…</div>
@@ -64,6 +66,7 @@
               <th>License</th>
               <th>City</th>
               <th>Owner</th>
+              <th>Coordinates</th>
               <th>Status</th>
               <th>Registered</th>
               <th>Actions</th>
@@ -79,16 +82,39 @@
                 <td><code>{{ ph.licenseNumber }}</code></td>
                 <td>{{ ph.city }}</td>
                 <td>{{ ph.ownerName }}</td>
-                <td><span class="badge" [class]="statusClass(ph.status)">{{ ph.status }}</span></td>
+                <td>
+                  <span class="coords-cell" [class.coords-cell--set]="ph.latitude != null">
+                    {{ coordsLabel(ph) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [class]="statusClass(ph.status)">{{ ph.status }}</span>
+                </td>
                 <td>{{ ph.registeredAt | date:'mediumDate' }}</td>
                 <td class="actions">
+                  <!-- Edit coordinates — always visible -->
+                  <button class="btn btn-sm btn-edit"
+                          (click)="openEditCoords(ph)"
+                          [attr.aria-label]="'Edit coordinates for ' + ph.name"
+                          title="Set map coordinates">
+                    📍 Edit
+                  </button>
+
                   @if (ph.status === 'Pending') {
-                    <button class="btn btn-sm btn-success" (click)="approvePharmacy(ph.id)" aria-label="Approve pharmacy">Approve</button>
-                    <button class="btn btn-sm btn-danger"  (click)="rejectPharmacy(ph.id)"  aria-label="Reject pharmacy">Reject</button>
+                    <button class="btn btn-sm btn-success"
+                            (click)="approvePharmacy(ph.id)"
+                            aria-label="Approve pharmacy">Approve</button>
+                    <button class="btn btn-sm btn-danger"
+                            (click)="rejectPharmacy(ph.id)"
+                            aria-label="Reject pharmacy">Reject</button>
                   } @else if (ph.status === 'Approved') {
-                    <button class="btn btn-sm btn-warn"    (click)="rejectPharmacy(ph.id)"  aria-label="Revoke approval">Revoke</button>
+                    <button class="btn btn-sm btn-warn"
+                            (click)="rejectPharmacy(ph.id)"
+                            aria-label="Revoke approval">Revoke</button>
                   } @else {
-                    <button class="btn btn-sm btn-success" (click)="approvePharmacy(ph.id)" aria-label="Re-approve pharmacy">Re-approve</button>
+                    <button class="btn btn-sm btn-success"
+                            (click)="approvePharmacy(ph.id)"
+                            aria-label="Re-approve pharmacy">Re-approve</button>
                   }
                 </td>
               </tr>
@@ -99,7 +125,7 @@
     }
   }
 
-  <!-- Users Tab -->
+  <!-- ── Users Tab ──────────────────────────────────────────────────── -->
   @if (activeTab() === 'users') {
     @if (loadingUsers()) {
       <div class="loading-state"><span class="spinner-dark"></span> Loading users…</div>
@@ -133,8 +159,11 @@
                   }
                 </td>
                 <td>
-                  <button class="btn btn-sm" [class.btn-danger]="u.isActive" [class.btn-success]="!u.isActive"
-                          (click)="toggleUser(u.id)" [attr.aria-label]="u.isActive ? 'Deactivate user' : 'Activate user'">
+                  <button class="btn btn-sm"
+                          [class.btn-danger]="u.isActive"
+                          [class.btn-success]="!u.isActive"
+                          (click)="toggleUser(u.id)"
+                          [attr.aria-label]="u.isActive ? 'Deactivate user' : 'Activate user'">
                     {{ u.isActive ? 'Deactivate' : 'Activate' }}
                   </button>
                 </td>
@@ -146,3 +175,98 @@
     }
   }
 </div>
+
+<!-- ── Edit Coordinates Modal ──────────────────────────────────────────── -->
+@if (editTarget()) {
+  <div class="modal-backdrop"
+       (click)="closeEditCoords()"
+       role="dialog"
+       aria-modal="true"
+       [attr.aria-label]="'Edit coordinates for ' + editTarget()!.name">
+    <div class="modal" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <div>
+          <h2>Edit Location Coordinates</h2>
+          <p class="modal-subtitle">{{ editTarget()!.name }}</p>
+        </div>
+        <button class="close-btn" (click)="closeEditCoords()" aria-label="Close modal">✕</button>
+      </div>
+
+      <!-- Error -->
+      @if (coordsError()) {
+        <div class="modal-alert" role="alert">⚠️ {{ coordsError() }}</div>
+      }
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div class="coords-info">
+          <span class="info-icon" aria-hidden="true">💡</span>
+          <span>Enter decimal degree coordinates. Leave blank to clear. Addis Ababa is roughly
+            <strong>9.0320°N, 38.7469°E</strong>.</span>
+        </div>
+
+        <div class="field-row">
+          <!-- Latitude -->
+          <div class="field-group">
+            <label for="edit-lat">Latitude</label>
+            <input
+              id="edit-lat"
+              type="number"
+              step="0.000001"
+              min="-90"
+              max="90"
+              [(ngModel)]="editLat"
+              placeholder="e.g. 9.0320"
+              class="coord-input"
+              autocomplete="off"
+            />
+            <span class="field-hint">-90 to 90</span>
+          </div>
+
+          <!-- Longitude -->
+          <div class="field-group">
+            <label for="edit-lng">Longitude</label>
+            <input
+              id="edit-lng"
+              type="number"
+              step="0.000001"
+              min="-180"
+              max="180"
+              [(ngModel)]="editLng"
+              placeholder="e.g. 38.7469"
+              class="coord-input"
+              autocomplete="off"
+            />
+            <span class="field-hint">-180 to 180</span>
+          </div>
+        </div>
+
+        <!-- IsOpen toggle -->
+        <div class="field-group">
+          <label class="toggle-label">
+            <input type="checkbox" [(ngModel)]="editIsOpen" class="toggle-checkbox" />
+            <span class="toggle-text">Pharmacy is currently <strong>{{ editIsOpen ? 'Open' : 'Closed' }}</strong></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" (click)="closeEditCoords()">
+          Cancel
+        </button>
+        <button class="btn btn-primary" type="button"
+                (click)="saveCoords()" [disabled]="savingCoords()">
+          @if (savingCoords()) {
+            <span class="spinner-sm"></span> Saving…
+          } @else {
+            Save Coordinates
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

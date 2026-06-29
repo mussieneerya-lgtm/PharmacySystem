@@ -1,68 +1,171 @@
-<div class="auth-page">
-  <div class="auth-card">
-    <div class="auth-header">
-      <div class="logo">💊</div>
-      <h1>PharmacySystem</h1>
-      <p>Sign in to your account</p>
+<div class="login-page">
+
+  <!-- ── Left panel: brand / illustration ─────────────────────────────── -->
+  <div class="left-panel" aria-hidden="true">
+
+    <!-- Decorative blobs -->
+    <div class="blob blob--1"></div>
+    <div class="blob blob--2"></div>
+    <div class="blob blob--3"></div>
+
+    <!-- Logo -->
+    <div class="brand">
+      <div class="brand-icon">💊</div>
+      <span class="brand-name">PharmacySystem</span>
     </div>
 
-    @if (errorMsg()) {
-      <div class="alert alert-error" role="alert">
-        <span>⚠️ {{ errorMsg() }}</span>
+    <!-- Central illustration card -->
+    <div class="illustration-card">
+      <div class="illus-icon-wrap">
+        <span class="illus-icon">🏥</span>
       </div>
-    }
-
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <!-- Email -->
-      <div class="form-group">
-        <label for="email">Email address</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="you@example.com"
-          autocomplete="email"
-          [class.is-invalid]="email.invalid && email.touched"
-        />
-        @if (email.touched && email.hasError('required')) {
-          <span class="error-text">Email is required.</span>
-        } @else if (email.touched && email.hasError('email')) {
-          <span class="error-text">Enter a valid email address.</span>
-        }
-      </div>
-
-      <!-- Password -->
-      <div class="form-group">
-        <label for="password">Password</label>
-        <div class="input-group">
-          <input
-            id="password"
-            [type]="showPassword() ? 'text' : 'password'"
-            formControlName="password"
-            placeholder="••••••••"
-            autocomplete="current-password"
-            [class.is-invalid]="password.invalid && password.touched"
-          />
-          <button type="button" class="toggle-pw" (click)="showPassword.set(!showPassword())"
-                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
-            {{ showPassword() ? '🙈' : '👁️' }}
-          </button>
+      <div class="illus-grid">
+        <div class="illus-item">
+          <span class="illus-item-icon">💊</span>
+          <span>Medicines</span>
         </div>
-        @if (password.touched && password.hasError('required')) {
-          <span class="error-text">Password is required.</span>
-        } @else if (password.touched && password.hasError('minlength')) {
-          <span class="error-text">Password must be at least 6 characters.</span>
-        }
+        <div class="illus-item">
+          <span class="illus-item-icon">📋</span>
+          <span>Prescriptions</span>
+        </div>
+        <div class="illus-item">
+          <span class="illus-item-icon">🗺️</span>
+          <span>Locations</span>
+        </div>
+        <div class="illus-item">
+          <span class="illus-item-icon">👥</span>
+          <span>Patients</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Headline -->
+    <div class="left-copy">
+      <h2 class="left-headline">Your health,<br>our priority</h2>
+      <p class="left-sub">
+        Manage medicines, prescriptions and<br>pharmacies with ease.
+      </p>
+    </div>
+
+    <!-- Floating decorative pills -->
+    <div class="float-pill float-pill--a">💊</div>
+    <div class="float-pill float-pill--b">🩺</div>
+    <div class="float-pill float-pill--c">⚕️</div>
+
+  </div>
+
+  <!-- ── Right panel: login form ───────────────────────────────────────── -->
+  <div class="right-panel">
+    <div class="login-card">
+
+      <!-- Card header -->
+      <div class="card-header">
+        <div class="card-logo">💊</div>
+        <h1 class="card-title">Pharmacy System</h1>
+        <p class="card-subtitle">Sign in to your account</p>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
-        @if (loading()) { <span class="spinner"></span> Signing in… }
-        @else { Sign in }
-      </button>
-    </form>
+      <!-- Error alert -->
+      @if (errorMsg()) {
+        <div class="error-alert" role="alert">
+          <span class="error-alert__icon">⚠️</span>
+          <span>{{ errorMsg() }}</span>
+        </div>
+      }
 
-    <p class="auth-footer">
-      Don't have an account? <a routerLink="/register">Create one</a>
-    </p>
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <!-- Email field -->
+        <div class="field">
+          <label class="field__label" for="email">Email Address</label>
+          <div class="field__input-wrap">
+            <span class="field__icon" aria-hidden="true">✉️</span>
+            <input
+              id="email"
+              class="field__input"
+              type="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              [class.field__input--invalid]="email.invalid && email.touched"
+            />
+          </div>
+          @if (email.touched && email.hasError('required')) {
+            <span class="field__error">Email is required.</span>
+          } @else if (email.touched && email.hasError('email')) {
+            <span class="field__error">Enter a valid email address.</span>
+          }
+        </div>
+
+        <!-- Password field -->
+        <div class="field">
+          <div class="field__label-row">
+            <label class="field__label" for="password">Password</label>
+            <a href="#" class="forgot-link" (click)="$event.preventDefault()">Forgot password?</a>
+          </div>
+          <div class="field__input-wrap">
+            <span class="field__icon" aria-hidden="true">🔒</span>
+            <input
+              id="password"
+              class="field__input field__input--pw"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              [class.field__input--invalid]="password.invalid && password.touched"
+            />
+            <button
+              type="button"
+              class="pw-toggle"
+              (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+              @if (showPassword()) { 🙈 } @else { 👁️ }
+            </button>
+          </div>
+          @if (password.touched && password.hasError('required')) {
+            <span class="field__error">Password is required.</span>
+          } @else if (password.touched && password.hasError('minlength')) {
+            <span class="field__error">At least 6 characters required.</span>
+          }
+        </div>
+
+        <!-- Remember me -->
+        <div class="remember-row">
+          <label class="remember-label">
+            <input type="checkbox" class="remember-cb" [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}" />
+            <span>Remember me</span>
+          </label>
+        </div>
+
+        <!-- Submit button -->
+        <button
+          type="submit"
+          class="signin-btn"
+          [disabled]="loading()"
+          [class.signin-btn--loading]="loading()"
+        >
+          @if (loading()) {
+            <span class="btn-spinner"></span>
+            <span>Signing in…</span>
+          } @else {
+            <span>Sign In</span>
+            <span class="btn-arrow" aria-hidden="true">→</span>
+          }
+        </button>
+
+      </form>
+
+      <!-- Footer links -->
+      <p class="card-footer">
+        Don't have an account?
+        <a routerLink="/register" class="card-footer__link">Create Account</a>
+      </p>
+
+      <p class="copyright">© {{ currentYear }} PharmacySystem. All rights reserved.</p>
+
+    </div>
   </div>
+
 </div>

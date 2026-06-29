@@ -13,6 +13,9 @@ export interface UpdatePharmacyDto {
   city?: string;
   phone?: string;
   email?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  isOpen?: boolean;
 }
 
 export interface PharmacyDto {
