@@ -1,0 +1,151 @@
+.pharmacy-card {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: .875rem;
+  padding: 1rem 1.1rem;
+  cursor: pointer;
+  transition: box-shadow .18s ease, border-color .18s ease, transform .15s ease;
+  outline: none;
+  position: relative;
+
+  &:hover {
+    box-shadow: 0 4px 20px rgba(37, 99, 235, .1);
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  // ── Selected state ──────────────────────────────────────────────────
+  &--selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .15);
+
+    .card-name { color: #1d4ed8; }
+  }
+
+  // ── Closed state ────────────────────────────────────────────────────
+  &--closed {
+    .card-name { color: #64748b; }
+  }
+}
+
+// ── Header ─────────────────────────────────────────────────────────────
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-bottom: .35rem;
+}
+
+.card-name {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.3;
+  flex: 1;
+}
+
+// ── Status pills ───────────────────────────────────────────────────────
+.status-pill {
+  display: inline-block;
+  padding: .15rem .6rem;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &--open {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+  }
+
+  &--closed {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+  }
+}
+
+// ── City badge ─────────────────────────────────────────────────────────
+.city-badge {
+  display: inline-block;
+  font-size: .72rem;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  border-radius: 999px;
+  padding: .1rem .55rem;
+  margin-bottom: .5rem;
+}
+
+// ── Body text ──────────────────────────────────────────────────────────
+.card-address,
+.card-phone {
+  margin: .25rem 0;
+  font-size: .82rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.card-phone {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+
+  a {
+    color: #2563eb;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+// ── No-location badge ──────────────────────────────────────────────────
+.no-location-badge {
+  display: inline-block;
+  font-size: .7rem;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: .35rem;
+  padding: .1rem .5rem;
+  margin-top: .3rem;
+}
+
+// ── Footer ─────────────────────────────────────────────────────────────
+.card-footer {
+  margin-top: .75rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-view-map {
+  background: none;
+  border: 1.5px solid #2563eb;
+  border-radius: .45rem;
+  color: #2563eb;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .3rem .75rem;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+
+  &:hover:not(:disabled) {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  &:disabled {
+    border-color: #e2e8f0;
+    color: #cbd5e1;
+    cursor: not-allowed;
+  }
+}

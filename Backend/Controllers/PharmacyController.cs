@@ -38,18 +38,21 @@ public class PharmacyController : ControllerBase
         var result = await query
             .Select(p => new PharmacyDto
             {
-                Id = p.Id,
-                Name = p.Name,
+                Id            = p.Id,
+                Name          = p.Name,
                 LicenseNumber = p.LicenseNumber,
-                Address = p.Address,
-                City = p.City,
-                Phone = p.Phone,
-                Email = p.Email,
-                Status = p.Status.ToString(),
-                RegisteredAt = p.RegisteredAt,
-                ApprovedAt = p.ApprovedAt,
-                OwnerId = p.OwnerId,
-                OwnerName = p.Owner.FullName
+                Address       = p.Address,
+                City          = p.City,
+                Phone         = p.Phone,
+                Email         = p.Email,
+                Status        = p.Status.ToString(),
+                RegisteredAt  = p.RegisteredAt,
+                ApprovedAt    = p.ApprovedAt,
+                OwnerId       = p.OwnerId,
+                OwnerName     = p.Owner.FullName,
+                Latitude      = p.Latitude,
+                Longitude     = p.Longitude,
+                IsOpen        = p.IsOpen
             })
             .ToListAsync();
 
@@ -60,24 +63,13 @@ public class PharmacyController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var p = await _db.Pharmacies.Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == id);
+        var p = await _db.Pharmacies
+            .Include(x => x.Owner)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
         if (p is null) return NotFound();
 
-        return Ok(new PharmacyDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            LicenseNumber = p.LicenseNumber,
-            Address = p.Address,
-            City = p.City,
-            Phone = p.Phone,
-            Email = p.Email,
-            Status = p.Status.ToString(),
-            RegisteredAt = p.RegisteredAt,
-            ApprovedAt = p.ApprovedAt,
-            OwnerId = p.OwnerId,
-            OwnerName = p.Owner.FullName
-        });
+        return Ok(MapToDto(p));
     }
 
     // ── Admin: GET all pharmacies (any status) ────────────────────────────
@@ -89,18 +81,21 @@ public class PharmacyController : ControllerBase
             .Include(p => p.Owner)
             .Select(p => new PharmacyDto
             {
-                Id = p.Id,
-                Name = p.Name,
+                Id            = p.Id,
+                Name          = p.Name,
                 LicenseNumber = p.LicenseNumber,
-                Address = p.Address,
-                City = p.City,
-                Phone = p.Phone,
-                Email = p.Email,
-                Status = p.Status.ToString(),
-                RegisteredAt = p.RegisteredAt,
-                ApprovedAt = p.ApprovedAt,
-                OwnerId = p.OwnerId,
-                OwnerName = p.Owner.FullName
+                Address       = p.Address,
+                City          = p.City,
+                Phone         = p.Phone,
+                Email         = p.Email,
+                Status        = p.Status.ToString(),
+                RegisteredAt  = p.RegisteredAt,
+                ApprovedAt    = p.ApprovedAt,
+                OwnerId       = p.OwnerId,
+                OwnerName     = p.Owner.FullName,
+                Latitude      = p.Latitude,
+                Longitude     = p.Longitude,
+                IsOpen        = p.IsOpen
             })
             .ToListAsync();
 
@@ -122,14 +117,14 @@ public class PharmacyController : ControllerBase
 
         var pharmacy = new Pharmacy
         {
-            Name = dto.Name,
+            Name          = dto.Name,
             LicenseNumber = dto.LicenseNumber,
-            Address = dto.Address,
-            City = dto.City,
-            Phone = dto.Phone,
-            Email = dto.Email,
-            OwnerId = CurrentUserId,
-            Status = RegistrationStatus.Pending
+            Address       = dto.Address,
+            City          = dto.City,
+            Phone         = dto.Phone,
+            Email         = dto.Email,
+            OwnerId       = CurrentUserId,
+            Status        = RegistrationStatus.Pending
         };
 
         _db.Pharmacies.Add(pharmacy);
@@ -150,11 +145,14 @@ public class PharmacyController : ControllerBase
         if (role != "Admin" && pharmacy.OwnerId != CurrentUserId)
             return Forbid();
 
-        if (dto.Name is not null) pharmacy.Name = dto.Name;
-        if (dto.Address is not null) pharmacy.Address = dto.Address;
-        if (dto.City is not null) pharmacy.City = dto.City;
-        if (dto.Phone is not null) pharmacy.Phone = dto.Phone;
-        if (dto.Email is not null) pharmacy.Email = dto.Email;
+        if (dto.Name      is not null) pharmacy.Name      = dto.Name;
+        if (dto.Address   is not null) pharmacy.Address   = dto.Address;
+        if (dto.City      is not null) pharmacy.City      = dto.City;
+        if (dto.Phone     is not null) pharmacy.Phone     = dto.Phone;
+        if (dto.Email     is not null) pharmacy.Email     = dto.Email;
+        if (dto.Latitude  is not null) pharmacy.Latitude  = dto.Latitude;
+        if (dto.Longitude is not null) pharmacy.Longitude = dto.Longitude;
+        if (dto.IsOpen    is not null) pharmacy.IsOpen    = dto.IsOpen.Value;
 
         await _db.SaveChangesAsync();
         return NoContent();
@@ -200,20 +198,26 @@ public class PharmacyController : ControllerBase
 
         if (p is null) return NotFound(new { message = "You have no registered pharmacy." });
 
-        return Ok(new PharmacyDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            LicenseNumber = p.LicenseNumber,
-            Address = p.Address,
-            City = p.City,
-            Phone = p.Phone,
-            Email = p.Email,
-            Status = p.Status.ToString(),
-            RegisteredAt = p.RegisteredAt,
-            ApprovedAt = p.ApprovedAt,
-            OwnerId = p.OwnerId,
-            OwnerName = p.Owner.FullName
-        });
+        return Ok(MapToDto(p));
     }
+
+    // ── Helper ────────────────────────────────────────────────────────────
+    private static PharmacyDto MapToDto(Pharmacy p) => new()
+    {
+        Id            = p.Id,
+        Name          = p.Name,
+        LicenseNumber = p.LicenseNumber,
+        Address       = p.Address,
+        City          = p.City,
+        Phone         = p.Phone,
+        Email         = p.Email,
+        Status        = p.Status.ToString(),
+        RegisteredAt  = p.RegisteredAt,
+        ApprovedAt    = p.ApprovedAt,
+        OwnerId       = p.OwnerId,
+        OwnerName     = p.Owner.FullName,
+        Latitude      = p.Latitude,
+        Longitude     = p.Longitude,
+        IsOpen        = p.IsOpen
+    };
 }

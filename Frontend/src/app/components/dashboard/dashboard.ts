@@ -29,7 +29,8 @@ export class DashboardComponent {
   readonly navItems = computed(() => {
     const role = this.role();
     const base = [
-      { label: 'Search Medicines', icon: '🔍', route: '/dashboard/search' }
+      { label: 'Search Medicines', icon: '🔍', route: '/dashboard/search' },
+      { label: 'Pharmacies Map',   icon: '🗺️', route: '/dashboard/pharmacies-map' }
     ];
     const pharmacistItems = [
       { label: 'My Pharmacy',   icon: '🏥', route: '/dashboard/pharmacy' },

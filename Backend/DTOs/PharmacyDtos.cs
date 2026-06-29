@@ -31,6 +31,9 @@ public class UpdatePharmacyDto
     public string? City { get; set; }
     public string? Phone { get; set; }
     public string? Email { get; set; }
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public bool? IsOpen { get; set; }
 }
 
 public class PharmacyDto
@@ -47,6 +50,11 @@ public class PharmacyDto
     public DateTime? ApprovedAt { get; set; }
     public int OwnerId { get; set; }
     public string OwnerName { get; set; } = string.Empty;
+
+    // ── Map fields ────────────────────────────────────────────────────────
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public bool IsOpen { get; set; }
 }
 
 public class ApprovePharmacyDto

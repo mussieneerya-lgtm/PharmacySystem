@@ -1,0 +1,56 @@
+<div
+  class="pharmacy-card"
+  [class.pharmacy-card--selected]="selected"
+  [class.pharmacy-card--closed]="!pharmacy.isOpen"
+  (click)="onClick()"
+  (keydown.enter)="onClick()"
+  role="button"
+  tabindex="0"
+  [attr.aria-label]="pharmacy.name + (selected ? ', selected' : '')"
+  [attr.aria-pressed]="selected"
+>
+  <!-- Header row: name + open/closed pill -->
+  <div class="card-header">
+    <h3 class="card-name">{{ pharmacy.name }}</h3>
+    @if (pharmacy.isOpen) {
+      <span class="status-pill status-pill--open" aria-label="Open">Open</span>
+    } @else {
+      <span class="status-pill status-pill--closed" aria-label="Closed">Closed</span>
+    }
+  </div>
+
+  <!-- City badge -->
+  <span class="city-badge">📍 {{ pharmacy.city }}</span>
+
+  <!-- Address -->
+  <p class="card-address">{{ pharmacy.address }}</p>
+
+  <!-- Phone -->
+  <p class="card-phone">
+    <span aria-hidden="true">📞</span>
+    <a [href]="'tel:' + pharmacy.phone" (click)="$event.stopPropagation()">
+      {{ pharmacy.phone }}
+    </a>
+  </p>
+
+  <!-- No-coordinates notice -->
+  @if (!hasCoordinates) {
+    <span class="no-location-badge" title="Coordinates not set for this pharmacy">
+      📌 Location not set
+    </span>
+  }
+
+  <!-- CTA -->
+  <div class="card-footer">
+    <button
+      class="btn-view-map"
+      type="button"
+      [disabled]="!hasCoordinates"
+      [title]="hasCoordinates ? 'Centre map on this pharmacy' : 'No coordinates available'"
+      (click)="$event.stopPropagation(); onClick()"
+      aria-label="View {{ pharmacy.name }} on map"
+    >
+      🗺️ View on Map
+    </button>
+  </div>
+</div>

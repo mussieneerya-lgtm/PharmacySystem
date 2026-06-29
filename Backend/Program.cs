@@ -101,6 +101,32 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.EnsureCreated();
 
+    // ── SQLite schema evolution: add map columns if they don't exist yet ──
+    // EnsureCreated() never alters existing tables, so we patch manually.
+    // Each ALTER TABLE is wrapped in a try/catch so re-runs are safe.
+    var conn = db.Database.GetDbConnection();
+    conn.Open();
+    foreach (var ddl in new[]
+    {
+        "ALTER TABLE Pharmacies ADD COLUMN Latitude REAL;",
+        "ALTER TABLE Pharmacies ADD COLUMN Longitude REAL;",
+        "ALTER TABLE Pharmacies ADD COLUMN IsOpen INTEGER NOT NULL DEFAULT 1;"
+    })
+    {
+        try
+        {
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = ddl;
+            cmd.ExecuteNonQuery();
+        }
+        catch (Microsoft.Data.Sqlite.SqliteException ex)
+            when (ex.Message.Contains("duplicate column name"))
+        {
+            // Column already exists — safe to ignore
+        }
+    }
+    conn.Close();
+
     const string superAdminEmail    = "superadmin@pharmacy.com";
     const string superAdminPassword = "admin123";
 

@@ -44,6 +44,10 @@ public class ApplicationDbContext : DbContext
             e.Property(p => p.Status)
              .HasConversion<string>()
              .HasMaxLength(20);
+            // Map coordinates — nullable until owner supplies them
+            e.Property(p => p.Latitude);
+            e.Property(p => p.Longitude);
+            e.Property(p => p.IsOpen).HasDefaultValue(true);
 
             e.HasOne(p => p.Owner)
              .WithOne(u => u.Pharmacy)

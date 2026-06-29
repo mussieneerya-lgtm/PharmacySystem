@@ -85,6 +85,12 @@ export const routes: Routes = [
       {
         path: 'profile',
         loadComponent: () => import('./components/profile/profile').then(m => m.ProfileComponent)
+      },
+
+      // Pharmacies Map — available to all authenticated roles
+      {
+        path: 'pharmacies-map',
+        loadComponent: () => import('./components/pharmacies-map/pharmacies-map').then(m => m.PharmaciesMapComponent)
       }
     ]
   },

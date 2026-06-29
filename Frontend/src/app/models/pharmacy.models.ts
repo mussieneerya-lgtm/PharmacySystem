@@ -28,6 +28,10 @@ export interface PharmacyDto {
   approvedAt?: string;
   ownerId: number;
   ownerName: string;
+  // Map fields — added in Pharmacies Map feature
+  latitude: number | null;
+  longitude: number | null;
+  isOpen: boolean;
 }
 
 export interface ApprovePharmacyDto {

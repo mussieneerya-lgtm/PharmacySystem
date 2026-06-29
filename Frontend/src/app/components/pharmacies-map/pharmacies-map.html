@@ -1,0 +1,181 @@
+<div class="map-page">
+
+  <!-- ── Page header ──────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="page-header__text">
+      <h1>Pharmacies Map</h1>
+      <p>Browse and locate approved pharmacies near you</p>
+    </div>
+
+    @if (!loading() && !errorMsg()) {
+      <div class="header-stats">
+        <span class="stat-chip">
+          🏥 {{ locations().length }} pharmacies
+        </span>
+        <span class="stat-chip stat-chip--map">
+          📍 {{ totalWithCoords }} on map
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- ── Mobile tab bar ───────────────────────────────────────────────── -->
+  <div class="mobile-tabs" role="tablist" aria-label="View switcher">
+    <button
+      role="tab"
+      class="mobile-tab"
+      [class.mobile-tab--active]="mobileView() === 'list'"
+      (click)="switchToListView()"
+      [attr.aria-selected]="mobileView() === 'list'"
+    >
+      🏥 List
+    </button>
+    <button
+      role="tab"
+      class="mobile-tab"
+      [class.mobile-tab--active]="mobileView() === 'map'"
+      (click)="switchToMapView()"
+      [attr.aria-selected]="mobileView() === 'map'"
+    >
+      🗺️ Map
+    </button>
+  </div>
+
+  <!-- ── Loading state ────────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="full-state" role="status" aria-live="polite">
+      <div class="spinner-wrap">
+        <span class="spinner-lg"></span>
+      </div>
+      <p class="state-text">Loading pharmacies…</p>
+    </div>
+
+  <!-- ── Error state ──────────────────────────────────────────────────── -->
+  } @else if (errorMsg()) {
+    <div class="full-state full-state--error" role="alert">
+      <span class="state-icon">⚠️</span>
+      <p class="state-text">{{ errorMsg() }}</p>
+      <button class="btn btn-primary" (click)="loadLocations()">Retry</button>
+    </div>
+
+  <!-- ── Main split-screen layout ─────────────────────────────────────── -->
+  } @else {
+    <div class="split-layout">
+
+      <!-- ── Left panel: list ─────────────────────────────────────────── -->
+      <aside
+        class="list-panel"
+        [class.list-panel--hidden-mobile]="mobileView() === 'map'"
+        aria-label="Pharmacy list"
+      >
+        <!-- Search + filter controls -->
+        <div class="controls">
+          <div class="search-wrap">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input
+              type="search"
+              class="search-input"
+              placeholder="Search pharmacies…"
+              [(ngModel)]="searchQuery"
+              (ngModelChange)="onSearchChange()"
+              aria-label="Search pharmacies by name or address"
+            />
+            @if (searchQuery) {
+              <button
+                class="search-clear"
+                type="button"
+                (click)="searchQuery = ''; onSearchChange()"
+                aria-label="Clear search"
+              >✕</button>
+            }
+          </div>
+
+          <select
+            class="city-select"
+            [(ngModel)]="selectedCity"
+            (ngModelChange)="onCityChange()"
+            aria-label="Filter by city"
+          >
+            <option value="">All Cities</option>
+            @for (city of cities(); track city) {
+              <option [value]="city">{{ city }}</option>
+            }
+          </select>
+
+          @if (hasActiveFilter) {
+            <button
+              class="btn-clear-filters"
+              type="button"
+              (click)="clearFilters()"
+              aria-label="Clear all filters"
+            >
+              Clear filters
+            </button>
+          }
+        </div>
+
+        <!-- Result count -->
+        <div class="list-meta">
+          @if (hasActiveFilter) {
+            <span>
+              <strong>{{ filtered().length }}</strong> of
+              <strong>{{ locations().length }}</strong> pharmacies
+            </span>
+          } @else {
+            <span><strong>{{ locations().length }}</strong> approved pharmacies</span>
+          }
+        </div>
+
+        <!-- Scrollable card list -->
+        <div class="card-list" #cardList>
+
+          @if (filtered().length === 0) {
+            <div class="list-empty">
+              <span class="list-empty__icon">🔍</span>
+              <p class="list-empty__title">No pharmacies found</p>
+              <p class="list-empty__sub">Try adjusting your search or filter.</p>
+              @if (hasActiveFilter) {
+                <button class="btn btn-secondary btn-sm" (click)="clearFilters()">
+                  Clear filters
+                </button>
+              }
+            </div>
+
+          } @else {
+            @for (pharmacy of filtered(); track pharmacy.id) {
+              <div [attr.data-id]="pharmacy.id">
+                <app-pharmacy-card
+                  [pharmacy]="pharmacy"
+                  [selected]="isSelected(pharmacy.id)"
+                  (cardClicked)="selectPharmacy($event.id, true)"
+                />
+              </div>
+            }
+          }
+
+        </div>
+      </aside>
+
+      <!-- ── Right panel: map ──────────────────────────────────────────── -->
+      <div
+        class="map-panel"
+        [class.map-panel--hidden-mobile]="mobileView() === 'list'"
+        aria-label="Interactive map"
+      >
+        <!-- Map container — Leaflet mounts here -->
+        <div #mapContainer class="map-container"></div>
+
+        <!-- No-coordinates notice -->
+        @if (mappable().length === 0 && locations().length > 0) {
+          <div class="map-notice" role="status">
+            <span>📌</span>
+            No pharmacies have location coordinates set yet.
+            Coordinates can be added via the Admin panel.
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+
+</div>

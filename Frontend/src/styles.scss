@@ -43,3 +43,71 @@ a { color: inherit; }
   white-space: nowrap;
   border: 0;
 }
+
+// ── Pharmacies Map — Leaflet marker & popup overrides ─────────────────────
+// These must be global (not scoped) because Leaflet renders outside Angular's
+// component tree and ViewEncapsulation would strip the selectors.
+
+.map-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.3));
+  }
+
+  &--default { color: #2563eb; }
+  &--selected {
+    color: #1d4ed8;
+    filter: drop-shadow(0 0 6px rgba(37,99,235,.6));
+  }
+  &--closed { color: #94a3b8; }
+}
+
+// Popup card styles
+.pharmacy-popup .leaflet-popup-content-wrapper {
+  border-radius: .75rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,.15);
+  padding: 0;
+  overflow: hidden;
+}
+
+.pharmacy-popup .leaflet-popup-content {
+  margin: 0;
+  min-width: 220px;
+}
+
+.pharmacy-popup .leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+.popup-content {
+  padding: .875rem 1rem;
+}
+
+.popup-name {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin: 0 0 .35rem;
+  line-height: 1.3;
+}
+
+.popup-address,
+.popup-phone {
+  font-size: .8rem;
+  color: #475569;
+  margin: .2rem 0;
+}
+
+.popup-status {
+  font-size: .78rem;
+  font-weight: 700;
+  margin: .4rem 0 0;
+
+  &.popup-open   { color: #166534; }
+  &.popup-closed { color: #991b1b; }
+}
